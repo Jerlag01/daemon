@@ -41,7 +41,7 @@ const Config = new ConfigHelper();
 Log.info('+ ------------------------------------ +');
 Log.info(`| Running Pterodactyl Daemon v${Package.version}    |`);
 Log.info('|        https://pterodactyl.io        |');
-Log.info('|  Copyright 2015 - 2018 Dane Everitt  |');
+Log.info('|  Copyright 2015 - 2019 Dane Everitt  |');
 Log.info('+ ------------------------------------ +');
 Log.info('Loading modules, this could take a few seconds.');
 
@@ -120,6 +120,12 @@ Async.auto({
         Log.debug('Unzip module found on server.');
     },
     check_sftp_rsa_key: callback => {
+        // Support for new standalone SFTP server.
+        if (!Config.get('sftp.enabled', true)) {
+            Log.debug('Not creating SFTP keys, disabled internal server...');
+            return callback();
+        }
+
         Log.debug('Checking for SFTP id_rsa key...');
         Fs.stat('./config/.sftp/id_rsa', err => {
             if (err && err.code === 'ENOENT') {
@@ -182,6 +188,7 @@ Async.auto({
                     break;
                 case 'Ubuntu Linux':
                 case 'Debian':
+                case 'Fedora':
                 case 'Centos':
                 case 'RHEL':
                 case 'Red Hat Linux':
@@ -251,6 +258,12 @@ Async.auto({
         return callback();
     }],
     init_sftp: ['init_websocket', 'check_sftp_rsa_key', (r, callback) => {
+        // Support for new standalone SFTP server.
+        if (!Config.get('sftp.enabled', true)) {
+            Log.debug('Not initializing SFTP server, disabled...');
+            return callback();
+        }
+
         Log.info('Configuring internal SFTP server...');
         Sftp.init(callback);
     }],

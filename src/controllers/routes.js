@@ -152,9 +152,11 @@ class RouteController {
                     },
                     headers: {
                         'X-Access-Node': Config.get('keys.0'),
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
                     },
                     followAllRedirects: true,
-                    timeout: 5000,
+                    timeout: 10000,
                 }, (requestErr, response, body) => {
                     if (requestErr || response.statusCode !== 200) {
                         Log.warn(requestErr, 'An error occured while attempting to alert the panel of server install status.', { code: (typeof response !== 'undefined') ? response.statusCode : null, responseBody: body });
@@ -276,9 +278,11 @@ class RouteController {
                     },
                     headers: {
                         'X-Access-Node': Config.get('keys.0'),
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
                     },
                     followAllRedirects: true,
-                    timeout: 5000,
+                    timeout: 10000,
                 }, (requestErr, response, body) => {
                     if (requestErr || response.statusCode !== 200) {
                         Log.warn(requestErr, 'An error occured while attempting to alert the panel of server install status.', { code: (typeof response !== 'undefined') ? response.statusCode : null, responseBody: body });
@@ -559,6 +563,10 @@ class RouteController {
                         const Mimetype = Mime.getType(json.path);
                         const File = Server[json.server].path(json.path);
                         const Stat = Fs.statSync(File);
+                        if (!Stat.isFile()) {
+                            return this.res.send(404, { 'error': 'Could not locate the requested file.' });
+                        }
+
                         this.res.writeHead(200, {
                             'Content-Type': Mimetype,
                             'Content-Length': Stat.size,

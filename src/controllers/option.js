@@ -113,7 +113,7 @@ class Option {
             }],
             setup_stream: ['close_stream', (results, callback) => {
                 const LoggingLocation = Path.join(this.server.configDataLocation, 'install.log');
-                this.server.log.info('Writing output of installation process to file.', { file: LoggingLocation });
+                this.server.log.info({ file: LoggingLocation }, 'Writing output of installation process to file.');
                 this.processLogger = createOutputStream(LoggingLocation, {
                     mode: 0o644,
                     defaultEncoding: 'utf8',
@@ -159,18 +159,19 @@ class Option {
                             Util.format('%s:/mnt/server', this.server.path()),
                             Util.format('%s:/mnt/install', Path.join('/tmp/pterodactyl/', this.server.json.uuid)),
                         ],
+                        NetworkMode: Config.get('docker.network.name', 'pterodactyl_nw'),
                     },
                 }, (err, data, container) => {
                     if (_.isObject(container) && _.isFunction(_.get(container, 'remove', null))) {
                         container.remove();
                     }
 
-                    if (data.StatusCode !== 0) {
-                        return callback(new Error(`Install script failed with code ${data.StatusCode}`));
-                    }
-
                     if (err) {
                         return callback(err);
+                    }
+
+                    if (data.StatusCode !== 0) {
+                        return callback(new Error(`Install script failed with code ${data.StatusCode}`));
                     }
 
                     this.server.log.info('Completed installation process for server.');
